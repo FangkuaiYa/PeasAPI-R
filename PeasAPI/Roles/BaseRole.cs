@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BepInEx.IL2CPP;
+using BepInEx.Unity.IL2CPP;
 using PeasAPI.Managers;
 using PeasAPI.Options;
 using UnityEngine;
@@ -116,13 +116,13 @@ namespace PeasAPI.Roles
             if (playerWithRole.Data.IsDead && PeasAPI.ShowRolesOfDead.Value)
                 return true;
             
-            switch (this.Visibility)
+            switch (Visibility)
             {
                 case Visibility.Role: return perspective.IsRole(this);
                 case Visibility.Impostor: return perspective.Data.Role.IsImpostor;
                 case Visibility.Crewmate: return true;
                 case Visibility.NoOne: return false;
-                case Visibility.Custom: return this.IsRoleVisible(playerWithRole, perspective);
+                case Visibility.Custom: return IsRoleVisible(playerWithRole, perspective);
                 default: throw new NotImplementedException("Unknown Visibility");
             }
         }
@@ -130,7 +130,7 @@ namespace PeasAPI.Roles
         /// <summary>
         /// This method calculates the nearest player to kill for a member of this role
         /// </summary>
-        public virtual PlayerControl FindClosestTarget(PlayerControl from, bool protecting)
+        public virtual PlayerControl FindClosestTarget(PlayerControl from)
         {
             PlayerControl result = null;
             float num = KillDistance;
@@ -141,7 +141,7 @@ namespace PeasAPI.Roles
             Vector2 truePosition = from.GetTruePosition();
             foreach (var playerInfo in GameData.Instance.AllPlayers)
             {
-                if (!playerInfo.Disconnected && playerInfo.PlayerId != from.PlayerId && !playerInfo.IsDead && (from.GetRole().CanKill(playerInfo.Object) || protecting) && !playerInfo.Object.inVent)
+                if (!playerInfo.Disconnected && playerInfo.PlayerId != from.PlayerId && !playerInfo.IsDead && from.GetRole().CanKill(playerInfo.Object) && !playerInfo.Object.inVent)
                 {
                     PlayerControl @object = playerInfo.Object;
                     if (@object && @object.Collider.enabled)
@@ -186,8 +186,8 @@ namespace PeasAPI.Roles
                     continue;
                 if (playerControl.IsRole(this) && _IsRoleVisible(playerControl, PlayerControl.LocalPlayer))
                 {
-                    playerControl.nameText.color = this.Color;
-                    playerControl.nameText.text = $"{player.GetPlayer().name}\n{Name}";
+                    playerControl.cosmetics.nameText.color = Color;
+                    playerControl.cosmetics.nameText.text = $"{player.GetPlayer().name}\n{Name}";
                 }
             }
 
@@ -215,8 +215,8 @@ namespace PeasAPI.Roles
                     continue;
                 if (playerControl.IsRole(this) && _IsRoleVisible(playerControl, PlayerControl.LocalPlayer))
                 {
-                    playerControl.nameText.color = this.Color;
-                    playerControl.nameText.text = $"{player.GetPlayer().name}\n{Name}";
+                    playerControl.cosmetics.nameText.color = Color;
+                    playerControl.cosmetics.nameText.text = $"{player.GetPlayer().name}\n{Name}";
                 }
             }
 

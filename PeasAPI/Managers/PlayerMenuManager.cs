@@ -3,8 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
-using Newtonsoft.Json.Utilities;
-using Reactor;
+using Reactor.Utilities;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -14,7 +13,7 @@ namespace PeasAPI.Managers
 {
     public static class PlayerMenuManager
     {
-        internal static bool IsMenuOpen = false;
+        internal static bool IsMenuOpen;
         internal static MeetingHud Instance;
         
         public static void OpenPlayerMenu(List<byte> players, Action<PlayerControl> onPlayerWasChosen, Action onMenuClosed)
@@ -66,7 +65,7 @@ namespace PeasAPI.Managers
                     CloseMenu();
                 }
                 
-                ControllerManager.Instance.AddSelectableUiElement(playerVoteArea.PlayerButton, false);
+                ControllerManager.Instance.AddSelectableUiElement(playerVoteArea.PlayerButton);
             }
             instance.playerStates = instance.playerStates.Where(p => p != null).ToArray();
 
@@ -99,7 +98,7 @@ namespace PeasAPI.Managers
             instance.transform.FindChild("Background").gameObject.SetActive(false);
             instance.MeetingIntro.gameObject.SetActive(false);
             ControllerManager.Instance.OpenOverlayMenu(Instance.name, null,
-                Instance.DefaultButtonSelected, Instance.ControllerSelectable, false);
+                Instance.DefaultButtonSelected, Instance.ControllerSelectable);
             yield break;
         }
 
@@ -121,7 +120,7 @@ namespace PeasAPI.Managers
         [HarmonyPatch]
         internal static class Patches
         {
-            [HarmonyPatch(typeof(PlayerControl), nameof(PlayerControl.CoStartMeeting))]
+            [HarmonyPatch(typeof(PlayerControl), nameof(PlayerControl.StartMeeting))]
             [HarmonyPrefix]
             public static void OnMeetingStartPatch(PlayerControl __instance)
             {

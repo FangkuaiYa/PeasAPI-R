@@ -1,14 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
+using AmongUs.Data.Legacy;
 using BepInEx.Configuration;
 using HarmonyLib;
-using InnerNet;
-using PeasAPI.CustomRpc;
-using Reactor;
-using Reactor.Extensions;
-using Reactor.Networking;
-using UnhollowerBaseLib;
+using Reactor.Localization.Utilities;
+using Reactor.Utilities.Extensions;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -61,7 +57,7 @@ namespace PeasAPI.Managers
             {
                 Body = body;
                 Shadow = shadow;
-                Name = CustomStringName.Register(name);
+                Name = CustomStringName.CreateAndRegister(name);
             }
         }
         
@@ -138,7 +134,7 @@ namespace PeasAPI.Managers
                 [HarmonyPatch(nameof(PlayerTab.SelectColor))]
                 private static void SelectColor(PlayerTab __instance, int colorId)
                 {
-                    __instance.PlayerPreview.HatSlot.SetHat(SaveManager.LastHat, colorId);
+                    __instance.PlayerPreview.cosmetics.hat.SetHat(LegacySaveManager.LastHat, colorId);
                 }
             }
 
@@ -197,12 +193,12 @@ namespace PeasAPI.Managers
             }
             
             // Prevent custom color from being saved inside SaveManager
-            [HarmonyPatch(typeof(SaveManager), nameof(SaveManager.BodyColor))]
-            private static class SaveManagerPatch
+            [HarmonyPatch(typeof(LegacySaveManager), nameof(LegacySaveManager.BodyColor))]
+            private static class LegacySaveManagerPatch
             {
                 private const byte MAXColor = 17;
                 private static ConfigEntry<byte> Data => PeasAPI.ConfigFile
-                    .Bind("CustomSaveManager", "Player Color ID", (byte) SaveManager.colorConfig);
+                    .Bind("CustomLegacySaveManager", "Player Color ID", (byte) LegacySaveManager.colorConfig);
                 
                 [HarmonyPrefix]
                 [HarmonyPatch(MethodType.Getter)]
@@ -212,13 +208,13 @@ namespace PeasAPI.Managers
                     return false;
                 }
                 
-                [HarmonyPrefix]
+                /*[HarmonyPrefix]
                 [HarmonyPatch(MethodType.Setter)]
                 private static bool SetterPatch(byte value)
                 {
                     Data.Value = value;
                     return value <= MAXColor;
-                }
+                }*/
             }
             
             // Can't figure out what making the game sends vanilla RPC

@@ -4,9 +4,9 @@ using HarmonyLib;
 using PeasAPI.CustomEndReason;
 using PeasAPI.GameModes;
 using PeasAPI.Roles;
-using Reactor;
-using Reactor.Extensions;
-using Reactor.Networking;
+using Reactor.Networking.Attributes;
+using Reactor.Networking.Rpc;
+using Reactor.Utilities.Extensions;
 
 namespace PeasAPI.CustomRpc
 {

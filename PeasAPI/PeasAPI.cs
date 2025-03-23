@@ -1,7 +1,7 @@
 ﻿using BepInEx;
 using BepInEx.Configuration;
-using BepInEx.IL2CPP;
 using BepInEx.Logging;
+using BepInEx.Unity.IL2CPP;
 using HarmonyLib;
 using InnerNet;
 using PeasAPI.Components;
@@ -60,7 +60,7 @@ namespace PeasAPI
 
         public override void Load()
         {
-            Logger = this.Log;
+            Logger = Log;
             ConfigFile = Config;
 
             var useCustomServer = ConfigFile.Bind("CustomServer", "UseCustomServer", false);

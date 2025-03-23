@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using BepInEx;
 using HarmonyLib;
+using Il2CppInterop.Runtime;
 using Reactor;
-using UnhollowerRuntimeLib;
 using UnityEngine;
 
 namespace PeasAPI.Managers
@@ -41,7 +41,7 @@ namespace PeasAPI.Managers
             }
         }
 
-        private static List<Watermark> Watermarks = new List<Watermark>();
+        private static readonly List<Watermark> Watermarks = new List<Watermark>();
 
         public static readonly Vector2 defaultVersionTextOffset = new (0f, -0.2f);
         public static readonly Vector2 defaultPingTextOffset = new Vector2(0f, 0f);

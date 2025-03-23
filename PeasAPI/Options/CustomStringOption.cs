@@ -2,11 +2,9 @@
 using BepInEx.Configuration;
 using System.Collections.Generic;
 using System.Reflection;
-using BepInEx.IL2CPP;
 using PeasAPI.CustomRpc;
-using Reactor;
-using Reactor.Networking;
-using UnityEngine;
+using Reactor.Localization.Utilities;
+using Reactor.Networking.Rpc;
 using Object = UnityEngine.Object;
 
 namespace PeasAPI.Options
@@ -33,7 +31,7 @@ namespace PeasAPI.Options
 
         public event OnValueChangedHandler OnValueChanged;
         
-        private ConfigEntry<int> _configEntry;
+        private readonly ConfigEntry<int> _configEntry;
 
         public class CustomStringOptionValueChangedArgs
         {
@@ -81,7 +79,7 @@ namespace PeasAPI.Options
                 Object.Instantiate(stringOptionPrefab, stringOptionPrefab.transform.parent);
                     
             stringOption.TitleText.text = Title;
-            stringOption.Title = CustomStringName.Register(Title);
+            stringOption.Title = CustomStringName.CreateAndRegister(Title);
             stringOption.Value = Value;
             stringOption.ValueText.text = StringValue;
             stringOption.Values = Values.ToArray();
@@ -109,7 +107,7 @@ namespace PeasAPI.Options
             Value = _configEntry?.Value ?? 0;
             Values = new List<StringNames>();
             foreach (var value in values)
-                Values.Add((StringNames)CustomStringName.Register(value));
+                Values.Add(CustomStringName.CreateAndRegister(value));
             HudFormat = "{0}: {1}";
 
             OptionManager.CustomOptions.Add(this);

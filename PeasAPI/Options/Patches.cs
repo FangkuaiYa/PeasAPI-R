@@ -4,8 +4,8 @@ using HarmonyLib;
 using Il2CppSystem.Text;
 using InnerNet;
 using PeasAPI.CustomRpc;
-using Reactor.Extensions;
-using Reactor.Networking;
+using Reactor.Networking.Rpc;
+using Reactor.Utilities.Extensions;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -14,10 +14,10 @@ namespace PeasAPI.Options
     [HarmonyPatch]
     public static class Patches
     {
-        private static float AllOptionSize = 6.73f;
+        private static readonly float AllOptionSize = 6.73f;
         private static float LowestOption = -7.85f;
-        private static float OptionSize = 0.5f;
-        private static float HudTextSize = 1.4f;
+        private static readonly float OptionSize = 0.5f;
+        private static readonly float HudTextSize = 1.4f;
 
         private static Scroller OptionsScroller;
 

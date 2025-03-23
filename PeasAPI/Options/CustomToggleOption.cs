@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Reflection;
 using BepInEx.Configuration;
 using PeasAPI.CustomRpc;
-using Reactor;
-using Reactor.Networking;
-using UnityEngine;
-using Object = System.Object;
+using Reactor.Localization.Utilities;
+using Reactor.Networking.Rpc;
 
 namespace PeasAPI.Options
 {
@@ -20,7 +18,7 @@ namespace PeasAPI.Options
 
         public event OnValueChangedHandler OnValueChanged;
         
-        private ConfigEntry<bool> _configEntry;
+        private readonly ConfigEntry<bool> _configEntry;
 
         public class CustomToggleOptionValueChangedArgs
         {
@@ -85,7 +83,7 @@ namespace PeasAPI.Options
                 Option = toggleOption;
 
                 toggleOption.TitleText.text = Title;
-                toggleOption.Title = CustomStringName.Register(Title);
+                toggleOption.Title = CustomStringName.CreateAndRegister(Title);
                 toggleOption.CheckMark.enabled = Value;
 
                 toggleOption.OnValueChanged = new Action<OptionBehaviour>(behaviour =>
@@ -103,12 +101,12 @@ namespace PeasAPI.Options
                 Option = toggleOption;
 
                 toggleOption.TitleText.text = Title;
-                toggleOption.Title = CustomStringName.Register(Title);
+                toggleOption.Title = CustomStringName.CreateAndRegister(Title);
                 toggleOption.Value = Value ? 0 : 1;
 
                 var values = new List<StringNames>();
-                values.Add(CustomStringName.Register("On"));
-                values.Add(CustomStringName.Register("Off"));
+                values.Add(CustomStringName.CreateAndRegister("On"));
+                values.Add(CustomStringName.CreateAndRegister("Off"));
                 toggleOption.Values = values.ToArray();
 
                 toggleOption.OnValueChanged = new Action<OptionBehaviour>(behaviour =>

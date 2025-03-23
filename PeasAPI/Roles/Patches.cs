@@ -4,10 +4,8 @@ using HarmonyLib;
 using Il2CppSystem.Collections.Generic;
 using PeasAPI.CustomButtons;
 using PeasAPI.CustomRpc;
-using Reactor.Networking;
-using UnhollowerBaseLib;
+using Reactor.Networking.Rpc;
 using UnityEngine;
-using Object = Il2CppSystem.Object;
 
 namespace PeasAPI.Roles
 {
@@ -199,9 +197,9 @@ namespace PeasAPI.Roles
                     if (localRole != null && __instance.PlayerId == PlayerControl.LocalPlayer.PlayerId)
                     {
                         HudManager.Instance.KillButton.gameObject.SetActive(!PlayerControl.LocalPlayer.Data.IsDead &&
-                                                                            localRole.CanKill(null) && CustomButton.HudActive);
+                                                                            localRole.CanKill() && CustomButton.HudActive);
 
-                        if (localRole.CanKill(null) && __instance.CanMove && !__instance.Data.IsDead)
+                        if (localRole.CanKill() && __instance.CanMove && !__instance.Data.IsDead)
                         {
                             if (!__instance.Data.Role.IsImpostor)
                                 __instance.SetKillTimer(__instance.killTimer - Time.fixedDeltaTime);
@@ -328,22 +326,21 @@ namespace PeasAPI.Roles
             RoleManager.Roles.Do(r => r.OnExiled(__instance));
         }
 
-        [HarmonyPatch(typeof(PlayerControl), nameof(PlayerControl.CoStartMeeting))]
+        [HarmonyPatch(typeof(PlayerControl), nameof(PlayerControl.StartMeeting))]
         [HarmonyPrefix]
         public static void OnMeetingStart(MeetingHud __instance)
         {
             RoleManager.Roles.Do(r => r.OnMeetingStart(__instance));
         }
         
-        [HarmonyPatch(typeof(PlayerControl), nameof(PlayerControl.FindClosestTarget))]
-        public static class PlayerControlFindClosestTargetPatch
+        [HarmonyPatch(typeof(RoleBehaviour), nameof(RoleBehaviour.FindClosestTarget))]
+        public static class RoleBehaviourFindClosestTargetPatch
         {
-            public static bool Prefix(PlayerControl __instance, out PlayerControl __result,
-                [HarmonyArgument(0)] bool protecting)
+            public static bool Prefix(PlayerControl __instance, out PlayerControl __result)
             {
                 if (__instance.GetRole() != null)
                 {
-                    __result = __instance.GetRole().FindClosestTarget(__instance, protecting);
+                    __result = __instance.GetRole().FindClosestTarget(__instance);
                     return false;
                 }
 
@@ -352,10 +349,10 @@ namespace PeasAPI.Roles
             }
         }
 
-        [HarmonyPatch(typeof(PlayerControl._CoSetTasks_d__112), nameof(PlayerControl._CoSetTasks_d__112.MoveNext))]
+        [HarmonyPatch(typeof(PlayerControl._CoSetTasks_d__110), nameof(PlayerControl._CoSetTasks_d__110.MoveNext))]
         public static class PlayerControlSetTasks
         {
-            public static void Postfix(PlayerControl._CoSetTasks_d__112 __instance)
+            public static void Postfix(PlayerControl._CoSetTasks_d__110 __instance)
             {
                 if (__instance == null)
                     return;

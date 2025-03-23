@@ -1,9 +1,8 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using HarmonyLib;
 using PeasAPI.Roles;
-using Reactor;
-using Reactor.Extensions;
+using Reactor.Localization.Utilities;
+using Reactor.Utilities.Extensions;
 using TMPro;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -120,7 +119,7 @@ namespace PeasAPI.Options
                         break;
                 }
 
-                optionBehaviour.Title = CustomStringName.Register(advancedOption.Title);
+                optionBehaviour.Title = CustomStringName.CreateAndRegister(advancedOption.Title);
                 optionBehaviour.name = advancedOption.Title;
 
                 var optionTransform = optionBehaviour.transform;

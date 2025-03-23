@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
-using Hazel;
 using PeasAPI.CustomRpc;
 using PeasAPI.Roles;
-using Reactor.Networking;
+using Reactor.Networking.Rpc;
 using UnityEngine;
 
 namespace PeasAPI.CustomEndReason

@@ -2,7 +2,7 @@
 using System.Linq;
 using HarmonyLib;
 using Il2CppSystem.Collections.Generic;
-using Reactor;
+using Reactor.Localization.Utilities;
 using UnityEngine;
 
 namespace PeasAPI.GameModes
@@ -183,10 +183,10 @@ namespace PeasAPI.GameModes
             }
         }
         
-        [HarmonyPatch(typeof(PlayerControl._CoSetTasks_d__112), nameof(PlayerControl._CoSetTasks_d__112.MoveNext))]
+        [HarmonyPatch(typeof(PlayerControl._CoSetTasks_d__110), nameof(PlayerControl._CoSetTasks_d__110.MoveNext))]
         public static class PlayerControlSetTasks
         {
-            public static void Postfix(PlayerControl._CoSetTasks_d__112 __instance)
+            public static void Postfix(PlayerControl._CoSetTasks_d__110 __instance)
             {
                 if (__instance == null)
                     return;
@@ -292,7 +292,7 @@ namespace PeasAPI.GameModes
         [HarmonyPostfix]
         static void SetupGameModeSetting(AmongUsClient __instance)
         {
-            GameModeManager.GameModeOption.Values = GameModeManager.Modes.ConvertAll(mode => mode.Name).Prepend("None").ToList().ConvertAll(mode => (StringNames) CustomStringName.Register(mode));
+            GameModeManager.GameModeOption.Values = GameModeManager.Modes.ConvertAll(mode => mode.Name).Prepend("None").ToList().ConvertAll(mode => CustomStringName.CreateAndRegister(mode));
         }
     }
 }

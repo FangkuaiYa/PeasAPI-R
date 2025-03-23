@@ -37,7 +37,7 @@ namespace PeasAPI.Managers
     [HarmonyPatch(typeof(HatManager), nameof(HatManager.GetHatById))]
     public static class HatManagerPatch
     {
-        private static bool modded = false;
+        private static bool modded;
 
         public static void Prefix(HatManager __instance)
         {
@@ -47,9 +47,9 @@ namespace PeasAPI.Managers
             modded = true;
 
             foreach (var hat in CustomHatManager.CustomHats)
-                __instance.allHats.Add(hat.CreateHat());
+                __instance.allHats.AddItem(hat.CreateHat());
             foreach (var visor in CustomHatManager.CustomVisors)
-                __instance.allVisors.Add(visor.CreateVisor());
+                __instance.allVisors.AddItem(visor.CreateVisor());
             
             __instance.allHats.ToArray().ToList().Sort((h1, h2) => String.Compare(h2.ProductId, h1.ProductId, StringComparison.Ordinal));
             

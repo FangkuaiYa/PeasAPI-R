@@ -1,14 +1,10 @@
 ﻿using System.Linq;
-using HarmonyLib;
 using PeasAPI.CustomRpc;
 using PeasAPI.Options;
 using PeasAPI.Roles;
-using Reactor.Extensions;
-using Reactor.Networking;
-using Reactor.Networking.MethodRpc;
-using UnhollowerBaseLib;
+using Reactor.Networking.Rpc;
+using Reactor.Utilities.Extensions;
 using UnityEngine;
-using Object = Il2CppSystem.Object;
 
 namespace PeasAPI
 {
@@ -35,16 +31,21 @@ namespace PeasAPI
             return player.PlayerId == PlayerControl.LocalPlayer.PlayerId;
         }
 
+        public static PlayerControl FindClosestTarget(this PlayerControl playerControl, bool noUse = false)
+        {
+            return playerControl.Data.Role.FindClosestTarget();
+        }
+
         public static void ToggleOutline(this PlayerControl player, bool active, Color color = default)
         {
             if (active)
             {
-                player.MyRend.material.SetFloat("_Outline", 1f);
-                player.MyRend.material.SetColor("_OutlineColor", color);
+                player.cosmetics.currentBodySprite.BodySprite.material.SetFloat("_Outline", 1f);
+                player.cosmetics.currentBodySprite.BodySprite.material.SetColor("_OutlineColor", color);
                 return;
             }
             
-            player.MyRend.material.SetFloat("_Outline", 0f);
+            player.cosmetics.currentBodySprite.BodySprite.material.SetFloat("_Outline", 0f);
         }
         
         public static Color SetAlpha(this Color original, float alpha)
@@ -160,8 +161,8 @@ namespace PeasAPI
                 HudManager.Instance.KillButton.gameObject.SetActive(isImpostor && !isDead);
                 HudManager.Instance.ImpostorVentButton.gameObject.SetActive(isImpostor && !isDead);
                 
-                player.nameText.color = isImpostor ? Palette.ImpostorRed : Color.white;
-                player.nameText.text = player.name;
+                player.cosmetics.nameText.color = isImpostor ? Palette.ImpostorRed : Color.white;
+                player.cosmetics.nameText.text = player.name;
             }
         }
         
@@ -188,11 +189,11 @@ namespace PeasAPI
                     {
                         if (pc.Data.Role.TeamType == PlayerControl.LocalPlayer.Data.Role.TeamType)
                         {
-                            pc.nameText.color = pc.Data.Role.NameColor;
+                            pc.cosmetics.nameText.color = pc.Data.Role.NameColor;
                         }
                         else
                         {
-                            pc.nameText.color = Palette.White;
+                            pc.cosmetics.nameText.color = Palette.White;
                         }
                     });
                 }
@@ -232,13 +233,11 @@ namespace PeasAPI
                     case Team.Crewmate:
                         if (otherRole != null)
                             return otherRole.Team == Team.Crewmate;
-                        else
-                            return !otherPlayer.Data.Role.IsImpostor;
+                        return !otherPlayer.Data.Role.IsImpostor;
                     case Team.Impostor:
                         if (otherRole != null)
                             return otherRole.Team == Team.Impostor;
-                        else
-                            return otherPlayer.Data.Role.IsImpostor;
+                        return otherPlayer.Data.Role.IsImpostor;
                 }
             }
             else if (otherRole == null)

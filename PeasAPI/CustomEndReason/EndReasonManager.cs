@@ -82,9 +82,9 @@ namespace PeasAPI.CustomEndReason
                     transform.localScale = scaleVec;
                     if (winner.IsDead)
                     {
-                        player.BodySprites.ToArray()[0].BodySprite.sprite = __instance.GhostSprite;
+                        player.cosmetics.bodySprites.ToArray()[0].BodySprite.sprite = __instance.GhostSprite;
                         player.SetDeadFlipX(i % 2 == 1);
-                        player.HatSlot.color = GhostColor;
+                        player.cosmetics.hat.SpriteColor = GhostColor;
                     }
                     else
                     {
@@ -92,14 +92,14 @@ namespace PeasAPI.CustomEndReason
                         player.SetSkin(winner.SkinId, winner.ColorId);
                     }
 
-                    PlayerControl.SetPlayerMaterialColors(winner.ColorId, player.CurrentBodySprite.BodySprite);
-                    player.HatSlot.SetHat(winner.HatId, winner.ColorId);
-                    PlayerControl.SetPetImage(winner.PetId, winner.ColorId, player.PetSlot);
-                    player.NameText.text = winner.PlayerName;
-                    player.NameText.transform.SetLocalZ(-15f);
+                    PlayerMaterial.SetColors(winner.ColorId, player.cosmetics.currentBodySprite.BodySprite);
+                    player.cosmetics.hat.SetHat(winner.HatId, winner.ColorId);
+                    //PlayerControl.SetPetImage(winner.PetId, winner.ColorId, player.PetSlot);
+                    player.cosmetics.nameText.text = winner.PlayerName;
+                    player.cosmetics.nameText.transform.SetLocalZ(-15f);
                 }
                 
-                SoundManager.Instance.PlaySound(__instance.DisconnectStinger, false, 1f);
+                SoundManager.Instance.PlaySound(__instance.DisconnectStinger, false);
                 
                 return false;
             }

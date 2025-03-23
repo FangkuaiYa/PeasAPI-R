@@ -2,8 +2,8 @@
 using System.Linq;
 using Hazel;
 using PeasAPI.CustomEndReason;
-using Reactor;
-using Reactor.Networking;
+using Reactor.Networking.Attributes;
+using Reactor.Networking.Rpc;
 using UnityEngine;
 
 namespace PeasAPI.CustomRpc

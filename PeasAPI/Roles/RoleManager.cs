@@ -2,9 +2,9 @@
 using System.Linq;
 using HarmonyLib;
 using PeasAPI.CustomRpc;
-using Reactor;
-using Reactor.Extensions;
-using Reactor.Networking;
+using Reactor.Localization.Utilities;
+using Reactor.Networking.Rpc;
+using Reactor.Utilities.Extensions;
 using UnityEngine;
 
 namespace PeasAPI.Roles
@@ -25,23 +25,23 @@ namespace PeasAPI.Roles
         {
             if (GameObject.Find($"{baseRole.Name}-Role"))
             {
-                return GameObject.Find($"{baseRole.Name}-Role").GetComponent<RoleBehaviour>();
+                return GameObject.Find($"{baseRole.Name}-Role").GetComponent<CrewmateRole>();
             }
 
             var roleObject = new GameObject($"{baseRole.Name}-Role");
             roleObject.DontDestroy();
             
             
-            var role = roleObject.AddComponent<RoleBehaviour>();
-            role.StringName = CustomStringName.Register(baseRole.Name);
-            role.BlurbName = CustomStringName.Register(baseRole.Description);
-            role.BlurbNameLong = CustomStringName.Register(baseRole.LongDescription);
-            role.BlurbNameMed = CustomStringName.Register(baseRole.Name);
+            var role = roleObject.AddComponent<CrewmateRole>();
+            role.StringName = CustomStringName.CreateAndRegister(baseRole.Name);
+            role.BlurbName = CustomStringName.CreateAndRegister(baseRole.Description);
+            role.BlurbNameLong = CustomStringName.CreateAndRegister(baseRole.LongDescription);
+            role.BlurbNameMed = CustomStringName.CreateAndRegister(baseRole.Name);
             role.Role = (RoleTypes) (6 + baseRole.Id);
             
             var abilityButtonSettings = ScriptableObject.CreateInstance<AbilityButtonSettings>();
             abilityButtonSettings.Image = baseRole.Icon;
-            abilityButtonSettings.Text = CustomStringName.Register(baseRole.Name);
+            abilityButtonSettings.Text = CustomStringName.CreateAndRegister(baseRole.Name);
             role.Ability = abilityButtonSettings;
             
             role.TeamType = baseRole.Team switch
