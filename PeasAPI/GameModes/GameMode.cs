@@ -1,4 +1,5 @@
 ﻿using System;
+using AmongUs.GameOptions;
 using BepInEx.Unity.IL2CPP;
 
 namespace PeasAPI.GameModes

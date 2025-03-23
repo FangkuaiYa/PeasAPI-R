@@ -88,7 +88,7 @@ namespace PeasAPI.CustomRpc
             EndReasonManager.Stinger = data.Stinger;
             
             if (AmongUsClient.Instance.AmHost)
-                ShipStatus.RpcEndGame(EndReasonManager.CustomGameOverReason, false);
+                GameManager.Instance.RpcEndGame(EndReasonManager.CustomGameOverReason, false);
         }
     }
 }

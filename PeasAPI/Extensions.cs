@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
+using AmongUs.GameOptions;
 using PeasAPI.CustomRpc;
 using PeasAPI.Options;
 using PeasAPI.Roles;
@@ -83,7 +85,16 @@ namespace PeasAPI
 
             return $"<color=#{r}{g}{b}{a}>";
         }
+        public static List<T> WrapToSystem<T>(this Il2CppSystem.Collections.Generic.List<T> list)
+        {
+            var newList = new List<T>();
+            foreach (var item in list)
+            {
+                newList.Add(item);
+            }
 
+            return newList;
+        }
         public static string GetTranslation(this StringNames stringName)
         {
             return TranslationController.Instance.GetString(stringName);
@@ -178,7 +189,7 @@ namespace PeasAPI
             HudManager.Instance.MapButton.gameObject.SetActive(true);
             HudManager.Instance.ReportButton.gameObject.SetActive(true);
             HudManager.Instance.UseButton.gameObject.SetActive(true);
-            PlayerControl.LocalPlayer.RemainingEmergencies = PlayerControl.GameOptions.NumEmergencyMeetings;
+            PlayerControl.LocalPlayer.RemainingEmergencies = GameOptionsManager.Instance.currentNormalGameOptions.NumEmergencyMeetings;
             RoleManager.Instance.SetRole(player, role);
             player.Data.Role.SpawnTaskHeader(player);
             if (!DestroyableSingleton<TutorialManager>.InstanceExists)
@@ -303,7 +314,16 @@ namespace PeasAPI
 
             return false;
         }
+        public static CustomOption GetCustomOption(this OptionBehaviour option)
+        {
+            var customOption = OptionManager.CustomOptions.Find(custom => custom.Option == option);
+            if (customOption != null)
+                return customOption;
         
+            customOption = OptionManager.CustomRoleOptions.Find(custom => custom.Option == option);
+        
+            return customOption;
+        }
         public static CustomOption? GetCustom(this OptionBehaviour option)
         {
             foreach (var customOption in OptionManager.CustomOptions)

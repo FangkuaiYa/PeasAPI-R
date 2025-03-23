@@ -27,7 +27,7 @@ namespace PeasAPI.CustomRpc
 
                 EndReasonManager.Reset();
 
-                if (AmongUsClient.Instance.GameMode != global::GameModes.FreePlay)
+                if (AmongUsClient.Instance.NetworkMode != global::NetworkModes.FreePlay)
                 {
                     var rolesForPlayers = new List<BaseRole>();
 

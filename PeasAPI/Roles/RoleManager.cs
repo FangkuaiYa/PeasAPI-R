@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using AmongUs.GameOptions;
 using HarmonyLib;
 using PeasAPI.CustomRpc;
 using Reactor.Localization.Utilities;
@@ -21,48 +22,40 @@ namespace PeasAPI.Roles
 
         public static void RegisterRole(BaseRole role) => Roles.Add(role);
 
-        internal static RoleBehaviour ToRoleBehaviour(BaseRole baseRole)
+        internal static RoleBehaviour ToRoleBehaviour(BaseRole customRole)
         {
-            if (GameObject.Find($"{baseRole.Name}-Role"))
+            if (GameObject.Find($"{customRole.Name}-Role"))
             {
-                return GameObject.Find($"{baseRole.Name}-Role").GetComponent<CrewmateRole>();
+                return GameObject.Find($"{customRole.Name}-Role").GetComponent<ModRole>();
             }
 
-            var roleObject = new GameObject($"{baseRole.Name}-Role");
+            var roleObject = new GameObject($"{customRole.Name}-Role");
             roleObject.DontDestroy();
-            
-            
-            var role = roleObject.AddComponent<CrewmateRole>();
-            role.StringName = CustomStringName.CreateAndRegister(baseRole.Name);
-            role.BlurbName = CustomStringName.CreateAndRegister(baseRole.Description);
-            role.BlurbNameLong = CustomStringName.CreateAndRegister(baseRole.LongDescription);
-            role.BlurbNameMed = CustomStringName.CreateAndRegister(baseRole.Name);
-            role.Role = (RoleTypes) (6 + baseRole.Id);
+
+            var role = roleObject.AddComponent<ModRole>();
+            role.StringName = CustomStringName.CreateAndRegister(customRole.Name);
+            role.BlurbName = CustomStringName.CreateAndRegister(customRole.Description);
+            role.BlurbNameLong = CustomStringName.CreateAndRegister(customRole.LongDescription);
+            role.BlurbNameMed = CustomStringName.CreateAndRegister(customRole.Name);
+            role.Role = (RoleTypes) (8 + customRole.Id);
+            role.NameColor = customRole.Color;
             
             var abilityButtonSettings = ScriptableObject.CreateInstance<AbilityButtonSettings>();
-            abilityButtonSettings.Image = baseRole.Icon;
-            abilityButtonSettings.Text = CustomStringName.CreateAndRegister(baseRole.Name);
+            abilityButtonSettings.Image = customRole.Icon;
+            abilityButtonSettings.Text = CustomStringName.CreateAndRegister("Please work");
+            abilityButtonSettings.FontMaterial = Material.GetDefaultMaterial();
             role.Ability = abilityButtonSettings;
             
-            role.TeamType = baseRole.Team switch
-            {
-                Team.Alone => (RoleTeamTypes) 3,
-                Team.Role => (RoleTeamTypes) 3,
-                Team.Crewmate => RoleTeamTypes.Crewmate,
-                Team.Impostor => RoleTeamTypes.Impostor,
-                _ => RoleTeamTypes.Crewmate
-            };
-            role.MaxCount = baseRole.MaxCount;
-            role.TasksCountTowardProgress = baseRole.HasToDoTasks;
-            role.CanVent = baseRole.CanVent;
-            role.CanUseKillButton = baseRole.CanKill();
-            
-            PlayerControl.GameOptions.RoleOptions.SetRoleRate(role.Role, 0, 0);
-
-            global::RoleManager.Instance.AllRoles.AddItem(role);
+            role.MaxCount = customRole.MaxCount;
+            role.TasksCountTowardProgress = customRole.HasToDoTasks;
+            role.CanVent = customRole.CanVent;
+            role.CanUseKillButton = customRole.CanKill();
+        
+            PeasAPI.Logger.LogInfo($"Created RoleBehaviour for Role {customRole.Name}");
             
             return role;
         }
+
         
         public static void ResetRoles()
         {

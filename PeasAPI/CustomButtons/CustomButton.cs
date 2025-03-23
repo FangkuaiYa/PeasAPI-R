@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AmongUs.GameOptions;
 using HarmonyLib;
 using UnityEngine;
 using Action = System.Action;
@@ -319,7 +320,7 @@ namespace PeasAPI.CustomButtons
         {
             var from = PlayerControl.LocalPlayer;
             PlayerControl result = null;
-            float num = GameOptionsData.KillDistances[Mathf.Clamp(PlayerControl.GameOptions.KillDistance, 0, 2)];
+            float num = Mathf.Clamp(GameManager.Instance?.LogicOptions?.GetKillDistance() ?? 1.8f, 0, 2);
             if (!ShipStatus.Instance)
             {
                 return null;
@@ -355,8 +356,8 @@ namespace PeasAPI.CustomButtons
             var from = PlayerControl.LocalPlayer;
             GameObject result1 = null;
             GameObject result2 = null;
-            float num1 = GameOptionsData.KillDistances[Mathf.Clamp(PlayerControl.GameOptions.KillDistance, 0, 2)];
-            float num2 = GameOptionsData.KillDistances[Mathf.Clamp(PlayerControl.GameOptions.KillDistance, 0, 2)];
+            float num1 = Mathf.Clamp(GameManager.Instance?.LogicOptions?.GetKillDistance() ?? 1.8f, 0, 2);
+            float num2 = Mathf.Clamp(GameManager.Instance?.LogicOptions?.GetKillDistance() ?? 1.8f, 0, 2);
             if (!ShipStatus.Instance)
             {
                 return null;
@@ -430,7 +431,7 @@ namespace PeasAPI.CustomButtons
             }
         }
         
-        [HarmonyPatch(typeof(HudManager), nameof(HudManager.SetHudActive))]
+        [HarmonyPatch(typeof(HudManager), nameof(HudManager.SetHudActive), typeof(bool))]
         internal static class HudManagerSetHudActivePatch
         {
             public static void Prefix(HudManager __instance, [HarmonyArgument(0)] bool isActive)

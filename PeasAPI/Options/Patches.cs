@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using AmongUs.GameOptions;
 using HarmonyLib;
 using Il2CppSystem.Text;
 using InnerNet;
@@ -111,15 +112,59 @@ namespace PeasAPI.Options
                     var newSetting = option.CreateOption(roleSettingPrefab);
                     newSetting.transform.localPosition = roleSettingPrefab.transform.localPosition - new Vector3(0f , (__instance.AllRoleSettings.ToArray().Count + OptionManager.CustomRoleOptions.IndexOf(option) + 1) * 0.5f);
                     
-                    var tab = option.CreateOptionObjects(roleTabPrefab);
-                    if (tab != null)
-                        __instance.AllAdvancedSettingTabs.Add(tab);
+                    if (!option.AdjustRoleSettings)
+                    {
+                        var roleOptionObject = (RoleOptionSetting)newSetting;
+                        //roleOptionObject.ChanceText.gameObject.SetActive(false);
+                        //roleOptionObject.CountText.gameObject.SetActive(false);
+                        roleOptionObject.transform.FindChild("Count Plus_TMP").gameObject.SetActive(false);
+                        roleOptionObject.transform.FindChild("Count Minus_TMP").gameObject.SetActive(false);
+                        roleOptionObject.transform.FindChild("Chance Plus_TMP").gameObject.SetActive(false);
+                        roleOptionObject.transform.FindChild("Chance Minus_TMP").gameObject.SetActive(false);
+                    }
+
+                    if (__instance.AllAdvancedSettingTabs.WrapToSystem()
+                            .Find(button => button.Type == option.Role.RoleBehaviour.Role) == null)
+                    {
+                        var tab = option.CreateAdvancedOptions(roleTabPrefab);
+                        if (tab != null)
+                            __instance.AllAdvancedSettingTabs.Add(tab);
+                    }
+                
+                    option.UpdateValuesAndText();
                 }
             }
 
             var scroller = roleSettingPrefab.gameObject.transform.parent.parent.GetComponent<Scroller>();
+            /*scroller.OnScrollYEvent += (Action<float>) (value =>
+            {
+                for (int i = 0; i < scroller.Inner.childCount; i++)
+                {
+                    var child = scroller.Inner.GetChild(i);
+                    child.gameObject.SetActive(child.position.y < GameObject.Find("RolesChancesGroup/Text").transform.position.y);
+                }
+            });*/
             scroller.ContentYBounds.max = (OptionManager.CustomRoleOptions.Count - 3) * 0.5f;
             scroller.transform.FindChild("UI_Scrollbar").gameObject.SetActive(true);
+        }
+        [HarmonyPatch(typeof(RolesSettingsMenu), nameof(RolesSettingsMenu.ValueChanged))]
+        [HarmonyPrefix]
+        public static bool RoleOptionRoleRateChangePatch(RolesSettingsMenu __instance,
+            [HarmonyArgument(0)] OptionBehaviour optionBehaviour)
+        {
+            var customOption = optionBehaviour.GetCustomOption();
+            PeasAPI.Logger.LogInfo(customOption);
+        
+            if (customOption == null || customOption is not CustomRoleOption)
+                return true;
+
+            var roleOption = optionBehaviour as RoleOptionSetting;
+            var customRoleOption = customOption as CustomRoleOption;
+            customRoleOption.SetValue(roleOption.RoleMaxCount, roleOption.RoleChance);
+            customRoleOption.UpdateValuesAndText();
+            PeasAPI.Logger.LogInfo("Data has changed: " + roleOption.RoleMaxCount + " " + roleOption.RoleChance);
+        
+            return false;
         }
 
         [HarmonyPatch(typeof(RolesSettingsMenu), nameof(RolesSettingsMenu.ValueChanged))]
@@ -131,10 +176,10 @@ namespace PeasAPI.Options
             {
                 switch (custom)
                 {
-                    case CustomRoleOption option:
-                        var rates = PlayerControl.GameOptions.RoleOptions.roleRates[option.Role.RoleBehaviour.Role];
+                    /*case CustomRoleOption option:
+                        var rates = GameOptionsManager.Instance.currentNormalGameOptions.roleOptions.roles[option.Role.RoleBehaviour.Role].Rate;
                         option.SetValue(rates.MaxCount, rates.Chance);
-                        break;
+                        break;*/
                     case CustomNumberOption option:
                         option.SetValue(obj.GetFloat());
                         break;
@@ -204,48 +249,50 @@ namespace PeasAPI.Options
                 OnModdedPage = !OnModdedPage;
         }
         
-        [HarmonyPatch(typeof(GameOptionsData), nameof(GameOptionsData.ToHudString))]
+        [HarmonyPatch(typeof(IGameOptionsExtensions), nameof(IGameOptionsExtensions.ToHudString))]
         [HarmonyPrefix]
-        private static bool AddInformationPatch(GameOptionsData __instance)
+        private static bool AddInformationPatch([HarmonyArgument(0)] IGameOptions gameOptions, ref string __result)
         {
+            var builder = IGameOptionsExtensions.SettingsStringBuilder;
             if (OnModdedPage)
             {
-                __instance.settings.Length = 0;
-                __instance.settings.AppendLine("Press <b>RightShift</b> to switch to the vanilla settings");
-                __instance.settings.AppendLine();
+                builder.Length = 0;
+                builder.AppendLine("Press <b>RightShift</b> to switch to the vanilla settings");
+                builder.AppendLine();
                 
-                __instance.settings.AppendLine("<u>Roles:</u>");
+                builder.AppendLine("<u>Roles:</u>");
                 foreach (var option in OptionManager.CustomRoleOptions)
                 {
-                    __instance.settings.AppendLine(String.Format(option.HudFormat, $"{option.Role.Color.ToTextColor()}{option.Role.Name}{Utility.StringColor.Reset}",
-                        __instance.RoleOptions.GetNumPerGame(option.Role.RoleBehaviour.Role),
-                        __instance.RoleOptions.GetChancePerGame(option.Role.RoleBehaviour.Role)));
-                    option.AdvancedOptions.Where(_option => _option.HudVisible).Do(_option => RenderOption(_option, __instance.settings, option.AdvancedOptionPrefix) );
+                    builder.AppendLine(String.Format(option.HudFormat, $"{option.Role.Color.ToTextColor()}{option.Role.Name}{Utility.StringColor.Reset}",
+                        gameOptions.RoleOptions.GetNumPerGame(option.Role.RoleBehaviour.Role),
+                        gameOptions.RoleOptions.GetChancePerGame(option.Role.RoleBehaviour.Role)));
+                    option.AdvancedOptions.Where(_option => _option.HudVisible).Do(_option => RenderOption(_option, builder, option.AdvancedOptionPrefix) );
                 }
             
-                OptionManager.HudVisibleOptions.Where(option => !option.IsFromPeasAPI && !option.AdvancedRoleOption).Do(option => RenderOption(option, __instance.settings) );
+                OptionManager.HudVisibleOptions.Where(option => !option.IsFromPeasAPI && !option.AdvancedRoleOption).Do(option => RenderOption(option, builder) );
                 
                 return false;
             }
             return true;
         }
         
-        [HarmonyPatch(typeof(GameOptionsData), nameof(GameOptionsData.ToHudString))]
+        [HarmonyPatch(typeof(IGameOptionsExtensions), nameof(IGameOptionsExtensions.ToHudString))]
         [HarmonyPostfix]
-        private static void GameOptionsDataToHudStringPatch(GameOptionsData __instance, ref string __result)
+        private static void GameOptionsDataToHudStringPatch([HarmonyArgument(0)] IGameOptions gameOptions, ref string __result)
         {
+            var builder = IGameOptionsExtensions.SettingsStringBuilder;
             if (!OnModdedPage)
             {
-                var text = __instance.settings.ToString();
-                __instance.settings.Clear();
-                __instance.settings.AppendLine("Press <b>RightShift</b> to switch to the modded settings");
-                __instance.settings.AppendLine();
-                __instance.settings.AppendLine(text);
+                var text = builder.ToString();
+                builder.Clear();
+                builder.AppendLine("Press <b>RightShift</b> to switch to the modded settings");
+                builder.AppendLine();
+                builder.AppendLine(text);
                 
-                OptionManager.HudVisibleOptions.Where(option => option.IsFromPeasAPI).Do(option => RenderOption(option, __instance.settings) );
+                OptionManager.HudVisibleOptions.Where(option => option.IsFromPeasAPI).Do(option => RenderOption(option, builder) );
             }
 
-            __result = __instance.settings.ToString();
+            __result = builder.ToString();
         }
 
         internal static void RenderOption(CustomOption option, StringBuilder builder, string prefix = "")
@@ -321,12 +368,7 @@ namespace PeasAPI.Options
             
             foreach (var option in OptionManager.CustomRoleOptions)
             {
-                if (!PlayerControl.GameOptions.RoleOptions.roleRates.ContainsKey(option.Role.RoleBehaviour.Role))
-                    PlayerControl.GameOptions.RoleOptions.roleRates[option.Role.RoleBehaviour.Role] =
-                        new RoleOptionsData.RoleRate();
-                var rates = PlayerControl.GameOptions.RoleOptions.roleRates[option.Role.RoleBehaviour.Role];
-                option.Count = rates.MaxCount;
-                option.Chance = rates.Chance;
+                GameOptionsManager.Instance.currentNormalGameOptions.RoleOptions.SetRoleRate(option.Role.RoleBehaviour.Role, option.Count, option.Chance);
             }
         }
 

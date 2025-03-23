@@ -1,4 +1,5 @@
-﻿using Hazel;
+﻿using AmongUs.GameOptions;
+using Hazel;
 using Reactor.Networking.Attributes;
 using Reactor.Networking.Rpc;
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using AmongUs.GameOptions;
 using HarmonyLib;
 using Il2CppSystem.Collections.Generic;
 using Reactor.Localization.Utilities;
@@ -23,8 +24,8 @@ namespace PeasAPI.GameModes
             }
         }
         
-        [HarmonyPatch(typeof(ShipStatus), nameof(ShipStatus.RpcEndGame))]
-        class ShipStatusRpcEndGamePatch
+        [HarmonyPatch(typeof(GameManager), nameof(GameManager.RpcEndGame))]
+        class GameManagerRpcEndGamePatch
         {
             public static bool Prefix(ShipStatus __instance, [HarmonyArgument(0)] GameOverReason reason)
             {
@@ -125,15 +126,12 @@ namespace PeasAPI.GameModes
                     {
                         if (mode.Enabled)
                         {
-                            HudManager.Instance.ShowMap((Action<MapBehaviour>) (map =>
-                            {
-                                foreach (MapRoom mapRoom in map.infectedOverlay.rooms.ToArray())
+                                foreach (MapRoom mapRoom in MapBehaviour.Instance.infectedOverlay.rooms.ToArray())
                                 {
                                     mapRoom.gameObject.SetActive(mode.AllowSabotage(mapRoom.room));
                                 }
 
-                                map.ShowSabotageMap();
-                            }));
+                                MapBehaviour.Instance.ShowSabotageMap();
 
                             return false;
                         }
@@ -155,13 +153,10 @@ namespace PeasAPI.GameModes
                     {
                         if (mode.Enabled)
                         {
-                            HudManager.Instance.ShowMap((Action<MapBehaviour>) (map =>
+                            foreach (MapRoom mapRoom in MapBehaviour.Instance.infectedOverlay.rooms.ToArray())
                             {
-                                foreach (MapRoom mapRoom in map.infectedOverlay.rooms.ToArray())
-                                {
-                                    mapRoom.gameObject.SetActive(mode.AllowSabotage(mapRoom.room));
-                                }
-                            }));
+                                mapRoom.gameObject.SetActive(mode.AllowSabotage(mapRoom.room));
+                            }
                         }
                     }
                 }
@@ -183,10 +178,10 @@ namespace PeasAPI.GameModes
             }
         }
         
-        [HarmonyPatch(typeof(PlayerControl._CoSetTasks_d__110), nameof(PlayerControl._CoSetTasks_d__110.MoveNext))]
+        [HarmonyPatch(typeof(PlayerControl._CoSetTasks_d__114), nameof(PlayerControl._CoSetTasks_d__114.MoveNext))]
         public static class PlayerControlSetTasks
         {
-            public static void Postfix(PlayerControl._CoSetTasks_d__110 __instance)
+            public static void Postfix(PlayerControl._CoSetTasks_d__114 __instance)
             {
                 if (__instance == null)
                     return;

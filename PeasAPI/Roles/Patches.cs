@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using AmongUs.GameOptions;
 using HarmonyLib;
 using Il2CppSystem.Collections.Generic;
 using PeasAPI.CustomButtons;
@@ -35,9 +36,9 @@ namespace PeasAPI.Roles
             Rpc<RpcInitializeRoles>.Instance.Send();
         }
 
-        [HarmonyPatch(typeof(global::RoleManager), nameof(global::RoleManager.AssignRolesFromList))]
+        [HarmonyPatch(typeof(global::LogicRoleSelectionNormal), nameof(global::LogicRoleSelectionNormal.AssignRolesFromList))]
         [HarmonyPrefix]
-        public static bool ChangeImpostors(global::RoleManager __instance,
+        public static bool ChangeImpostors(global::LogicRoleSelectionNormal __instance,
             [HarmonyArgument(0)] List<GameData.PlayerInfo> players, [HarmonyArgument(1)] int teamMax,
             [HarmonyArgument(2)] List<RoleTypes> roleList, [HarmonyArgument(3)] ref int rolesAssigned)
         {
@@ -57,9 +58,9 @@ namespace PeasAPI.Roles
             return false;
         }
 
-        [HarmonyPatch(typeof(IntroCutscene._ShowRole_d__24), nameof(IntroCutscene._ShowRole_d__24.MoveNext))]
+        [HarmonyPatch(typeof(IntroCutscene._ShowRole_d__39), nameof(IntroCutscene._ShowRole_d__39.MoveNext))]
         [HarmonyPostfix]
-        public static void RoleTextPatch(IntroCutscene._ShowRole_d__24 __instance)
+        public static void RoleTextPatch(IntroCutscene._ShowRole_d__39 __instance)
         {
             if (PlayerControl.LocalPlayer.GetRole() != null)
             {
@@ -301,10 +302,10 @@ namespace PeasAPI.Roles
             {
                 if (__instance.GetRole() != null && __instance.GetRole().CanKill() || __instance.Data.Role.CanUseKillButton)
                 {
-                    if (PlayerControl.GameOptions.KillCooldown <= 0f)
+                    if (GameOptionsManager.Instance.currentNormalGameOptions.KillCooldown <= 0f)
                         return false;
-                    __instance.killTimer = Mathf.Clamp(time, 0f, PlayerControl.GameOptions.KillCooldown);
-                    DestroyableSingleton<HudManager>.Instance.KillButton.SetCoolDown(__instance.killTimer, PlayerControl.GameOptions.KillCooldown);
+                    __instance.killTimer = Mathf.Clamp(time, 0f, GameOptionsManager.Instance.currentNormalGameOptions.KillCooldown);
+                    DestroyableSingleton<HudManager>.Instance.KillButton.SetCoolDown(__instance.killTimer, GameOptionsManager.Instance.currentNormalGameOptions.KillCooldown);
                 }
                 return false;
             }
@@ -333,7 +334,7 @@ namespace PeasAPI.Roles
             RoleManager.Roles.Do(r => r.OnMeetingStart(__instance));
         }
         
-        [HarmonyPatch(typeof(RoleBehaviour), nameof(RoleBehaviour.FindClosestTarget))]
+        /*[HarmonyPatch(typeof(RoleBehaviour), nameof(RoleBehaviour.FindClosestTarget))]
         public static class RoleBehaviourFindClosestTargetPatch
         {
             public static bool Prefix(PlayerControl __instance, out PlayerControl __result)
@@ -347,12 +348,12 @@ namespace PeasAPI.Roles
                 __result = null;
                 return true;
             }
-        }
+        }*/
 
-        [HarmonyPatch(typeof(PlayerControl._CoSetTasks_d__110), nameof(PlayerControl._CoSetTasks_d__110.MoveNext))]
+        [HarmonyPatch(typeof(PlayerControl._CoSetTasks_d__114), nameof(PlayerControl._CoSetTasks_d__114.MoveNext))]
         public static class PlayerControlSetTasks
         {
-            public static void Postfix(PlayerControl._CoSetTasks_d__110 __instance)
+            public static void Postfix(PlayerControl._CoSetTasks_d__114 __instance)
             {
                 if (__instance == null)
                     return;
@@ -398,17 +399,14 @@ namespace PeasAPI.Roles
 
                     if (role == null)
                         return true;
-
-                    HudManager.Instance.ShowMap((Action<MapBehaviour>)(map =>
+                    
+                    foreach (MapRoom mapRoom in MapBehaviour.Instance.infectedOverlay.rooms.ToArray()
+                                 .Where(room => !role.CanSabotage(room.room)))
                     {
-                        foreach (MapRoom mapRoom in map.infectedOverlay.rooms.ToArray()
-                            .Where(room => !role.CanSabotage(room.room)))
-                        {
-                            mapRoom.gameObject.SetActive(false);
-                        }
+                        mapRoom.gameObject.SetActive(false);
+                    }
 
-                        map.ShowSabotageMap();
-                    }));
+                    MapBehaviour.Instance.ShowSabotageMap();
 
                     return false;
                 }
@@ -429,13 +427,10 @@ namespace PeasAPI.Roles
                     if (role == null)
                         return true;
                     
-                    HudManager.Instance.ShowMap((Action<MapBehaviour>) (map =>
-                    {
-                        foreach (MapRoom mapRoom in map.infectedOverlay.rooms.ToArray())
+                        foreach (MapRoom mapRoom in MapBehaviour.Instance.infectedOverlay.rooms.ToArray())
                         {
                             mapRoom.gameObject.SetActive(role.CanSabotage(mapRoom.room));
                         }
-                    }));
                     
                     //return false;
                 }
@@ -472,9 +467,9 @@ namespace PeasAPI.Roles
             }
         }
 
-        [HarmonyPatch(typeof(ShipStatus), nameof(ShipStatus.RpcEndGame))]
+        [HarmonyPatch(typeof(GameManager), nameof(GameManager.RpcEndGame))]
         [HarmonyPrefix]
-        private static bool ShouldGameEndPatch(ShipStatus __instance, [HarmonyArgument(0)] GameOverReason endReason)
+        private static bool ShouldGameEndPatch(GameManager __instance, [HarmonyArgument(0)] GameOverReason endReason)
         {
             return RoleManager.Roles.Count(r => r.Members.Count != 0 && !r.ShouldGameEnd(endReason)) == 0;
         }
@@ -517,7 +512,7 @@ namespace PeasAPI.Roles
             __instance.CompletedTasks = 0;
             foreach (var playerInfo in __instance.AllPlayers)
             {
-                if (!playerInfo.Disconnected && playerInfo.Tasks != null && playerInfo.Object && (PlayerControl.GameOptions.GhostsDoTasks || !playerInfo.IsDead) && playerInfo.Role && playerInfo.Role.TasksCountTowardProgress && (playerInfo.GetRole() == null || playerInfo.GetRole().HasToDoTasks))
+                if (!playerInfo.Disconnected && playerInfo.Tasks != null && playerInfo.Object && (GameOptionsManager.Instance.currentNormalGameOptions.GhostsDoTasks || !playerInfo.IsDead) && playerInfo.Role && playerInfo.Role.TasksCountTowardProgress && (playerInfo.GetRole() == null || playerInfo.GetRole().HasToDoTasks))
                 {
                     foreach (var task in playerInfo.Tasks)
                     {
@@ -532,7 +527,7 @@ namespace PeasAPI.Roles
             /*for (int i = 0; i < __instance.AllPlayers.Count; i++)
             {
                 GameData.PlayerInfo playerInfo = __instance.AllPlayers[i];
-                if (!playerInfo.Disconnected && playerInfo.Tasks != null && playerInfo.Object && (PlayerControl.GameOptions.GhostsDoTasks || !playerInfo.IsDead) && playerInfo.Role && playerInfo.Role.TasksCountTowardProgress)
+                if (!playerInfo.Disconnected && playerInfo.Tasks != null && playerInfo.Object && (GameOptionsManager.Instance.currentNormalGameOptions.GhostsDoTasks || !playerInfo.IsDead) && playerInfo.Role && playerInfo.Role.TasksCountTowardProgress)
                 {
                     for (int j = 0; j < playerInfo.Tasks.Count; j++)
                     {

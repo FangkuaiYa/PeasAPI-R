@@ -47,7 +47,7 @@ namespace PeasAPI
             {
                 return GameData.Instance && ShipStatus.Instance && AmongUsClient.Instance &&
                        (AmongUsClient.Instance.GameState == InnerNetClient.GameStates.Started ||
-                        AmongUsClient.Instance.GameMode == global::GameModes.FreePlay);
+                        AmongUsClient.Instance.NetworkMode == global::NetworkModes.FreePlay);
             }
         }
 

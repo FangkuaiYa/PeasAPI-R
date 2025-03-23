@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AmongUs.GameOptions;
 using BepInEx.Unity.IL2CPP;
 using PeasAPI.Managers;
 using PeasAPI.Options;
@@ -76,7 +77,7 @@ namespace PeasAPI.Roles
 
         public virtual Type[] GameModeWhitelist { get; } = Array.Empty<Type>();
 
-        public virtual float KillDistance { get; set; } = GameOptionsData.KillDistances[Mathf.Clamp(PlayerControl.GameOptions.KillDistance, 0, 2)];
+        public virtual float KillDistance { get; set; } = Mathf.Clamp(GameManager.Instance?.LogicOptions?.GetKillDistance() ?? 1.8f, 0, 2);
 
         /// <summary>
         /// If a member of the role should be able to kill that player / in general
@@ -289,7 +290,7 @@ namespace PeasAPI.Roles
             Id = RoleManager.GetRoleId();
             RoleBehaviour = RoleManager.ToRoleBehaviour(this);
             if (CreateRoleOption)
-                Option = new CustomRoleOption(this, AdvancedOptionsPrefix, AdvancedOptions.Values.ToArray());
+                Option = new CustomRoleOption(this, AdvancedOptionsPrefix, true, AdvancedOptions.Values.ToArray());
             RoleManager.RegisterRole(this);
         }
     }
